@@ -34,7 +34,7 @@ front=
 back=
 
 # Number of signatures to generate
-signatures=2
+signatures=10
 
 # Font and positioning information to use for page numbers.
 # Use "strings ${inp}|grep FontName" to find a good candidate for the font.
@@ -50,6 +50,9 @@ numypos=30pt
 paperwidth=5.5
 paperheight=8.5
 
+# Trim on left, bottom, right, and top, if necessary
+trim='.7in 2in 1.15in 1in'
+
 # Size of printable are (only used when including external images)
 contentwidth=
 contentheight=
@@ -62,7 +65,7 @@ spreadheight=
 tmp="${out%.pdf}~.pdf"
 tmp2="${tmp%.pdf}~.pdf"
 pdfjam -q --papersize "{${paperwidth}in,${paperheight}in}" "${inp}" \
-       --outfile "${tmp}"
+       ${trim:+--trim "${trim}" --clip true} --outfile "${tmp}"
 
 # Insert two-page spread(s).
 spreadfiles=
@@ -101,7 +104,8 @@ for i in ${select}; do
       pdfimages -f "${BASH_REMATCH[2]}" -l "${BASH_REMATCH[2]}" -all "${tmp}" \
                 "${dir}/x"
       convert "${dir}/$(printf 'x-%03d.jpg' "${j}")" -rotate \
-              $([ "${BASH_REMATCH[3]}" = left ] && echo ' -90' || echo 90) \
+              $([ "${BASH_REMATCH[3]}" = left ] && echo ' -90' ||
+                [ "${BASH_REMATCH[3]}" = right ] && echo 90 || :) \
               -fuzz 10% -trim -trim -quality 100 \
               +repage -format pdf "${spreaddoc}" >&/dev/null || :
       rm -rf "${dir}"
